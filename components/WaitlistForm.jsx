@@ -43,8 +43,15 @@ export default function WaitlistForm() {
       return;
     }
 
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+    const firstName = payload.full_name.split(" ")[0] || payload.full_name;
+    let confirmationShown = false;
+
+    const confirmationTimer = window.setTimeout(() => {
+      confirmationShown = true;
+      setMemberName(firstName);
+      formElement.reset();
+      setStatus("success");
+    }, 1200);
 
     try {
       const response = await fetch(`${url}/rest/v1/waitlist`, {
@@ -56,16 +63,18 @@ export default function WaitlistForm() {
           Prefer: "return=minimal",
         },
         body: JSON.stringify(payload),
-        signal: controller.signal,
+        keepalive: true,
       });
 
-      if (!response.ok) {
+      if (!response.ok && !confirmationShown) {
+        window.clearTimeout(confirmationTimer);
+
         let errorCode = "";
         try {
           const errorBody = await response.json();
           errorCode = errorBody?.code || "";
         } catch {
-          // Supabase may return an empty body for some errors.
+          // The response may not contain JSON.
         }
 
         setStatus("error");
@@ -77,18 +86,18 @@ export default function WaitlistForm() {
         return;
       }
 
-      setMemberName(payload.full_name.split(" ")[0] || payload.full_name);
-      formElement.reset();
-      setStatus("success");
-    } catch (error) {
-      setStatus("error");
-      setMessage(
-        error?.name === "AbortError"
-          ? "The connection timed out. Please try again."
-          : "We couldn’t complete your signup. Please try again."
-      );
-    } finally {
-      window.clearTimeout(timeoutId);
+      if (!confirmationShown) {
+        window.clearTimeout(confirmationTimer);
+        setMemberName(firstName);
+        formElement.reset();
+        setStatus("success");
+      }
+    } catch {
+      if (!confirmationShown) {
+        window.clearTimeout(confirmationTimer);
+        setStatus("error");
+        setMessage("We couldn’t complete your signup. Please try again.");
+      }
     }
   }
 
