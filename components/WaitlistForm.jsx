@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
 
 const stages = [
   "Exploring an idea",
@@ -11,11 +10,6 @@ const stages = [
   "Looking for collaborators",
 ];
 
-const timeoutAfter = (milliseconds) =>
-  new Promise((_, reject) =>
-    setTimeout(() => reject(new Error("Request timed out")), milliseconds)
-  );
-
 export default function WaitlistForm() {
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
@@ -23,6 +17,9 @@ export default function WaitlistForm() {
 
   async function handleSubmit(event) {
     event.preventDefault();
+
+    if (status === "loading") return;
+
     setStatus("loading");
     setMessage("");
 
@@ -46,19 +43,36 @@ export default function WaitlistForm() {
       return;
     }
 
-    try {
-      const supabase = createClient(url, key);
-      const result = await Promise.race([
-        supabase.from("waitlist").insert(payload),
-        timeoutAfter(12000),
-      ]);
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 10000);
 
-      if (result.error) {
+    try {
+      const response = await fetch(`${url}/rest/v1/waitlist`, {
+        method: "POST",
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+          Prefer: "return=minimal",
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        let errorCode = "";
+        try {
+          const errorBody = await response.json();
+          errorCode = errorBody?.code || "";
+        } catch {
+          // Supabase may return an empty body for some errors.
+        }
+
         setStatus("error");
         setMessage(
-          result.error.code === "23505"
+          errorCode === "23505"
             ? "You are already on the Libbu waitlist."
-            : "Something went wrong. Please try again."
+            : "We couldn’t complete your signup. Please try again."
         );
         return;
       }
@@ -69,10 +83,12 @@ export default function WaitlistForm() {
     } catch (error) {
       setStatus("error");
       setMessage(
-        error?.message === "Request timed out"
-          ? "This is taking longer than expected. Please try again."
-          : "Something went wrong. Please try again."
+        error?.name === "AbortError"
+          ? "The connection timed out. Please try again."
+          : "We couldn’t complete your signup. Please try again."
       );
+    } finally {
+      window.clearTimeout(timeoutId);
     }
   }
 
