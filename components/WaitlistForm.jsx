@@ -11,16 +11,23 @@ const stages = [
   "Looking for collaborators",
 ];
 
+const timeoutAfter = (milliseconds) =>
+  new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("Request timed out")), milliseconds)
+  );
+
 export default function WaitlistForm() {
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
+  const [memberName, setMemberName] = useState("");
 
   async function handleSubmit(event) {
     event.preventDefault();
     setStatus("loading");
     setMessage("");
 
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const payload = {
       full_name: String(form.get("full_name") || "").trim(),
       email: String(form.get("email") || "").trim().toLowerCase(),
@@ -39,22 +46,49 @@ export default function WaitlistForm() {
       return;
     }
 
-    const supabase = createClient(url, key);
-    const { error } = await supabase.from("waitlist").insert(payload);
+    try {
+      const supabase = createClient(url, key);
+      const result = await Promise.race([
+        supabase.from("waitlist").insert(payload),
+        timeoutAfter(12000),
+      ]);
 
-    if (error) {
+      if (result.error) {
+        setStatus("error");
+        setMessage(
+          result.error.code === "23505"
+            ? "You are already on the Libbu waitlist."
+            : "Something went wrong. Please try again."
+        );
+        return;
+      }
+
+      setMemberName(payload.full_name.split(" ")[0] || payload.full_name);
+      formElement.reset();
+      setStatus("success");
+    } catch (error) {
       setStatus("error");
       setMessage(
-        error.code === "23505"
-          ? "You are already on the Libbu waitlist."
+        error?.message === "Request timed out"
+          ? "This is taking longer than expected. Please try again."
           : "Something went wrong. Please try again."
       );
-      return;
     }
+  }
 
-    event.currentTarget.reset();
-    setStatus("success");
-    setMessage("You’re in. Welcome to the first circle of Libbu.");
+  if (status === "success") {
+    return (
+      <div className="waitlist-form thank-you-card" role="status" aria-live="polite">
+        <div className="thank-you-mark" aria-hidden="true">✓</div>
+        <p className="eyebrow">Welcome to Libbu</p>
+        <h3>Thank you, {memberName}.</h3>
+        <p>
+          You’re officially on the founding-member waitlist. We’ll be in touch with early
+          access, founder opportunities and the next steps for joining the Libbu community.
+        </p>
+        <a className="primary-button" href="#top">Back to the top</a>
+      </div>
+    );
   }
 
   return (
