@@ -1,3 +1,4 @@
+import LibbuAgent from "../components/LibbuAgent";
 import WaitlistForm from "../components/WaitlistForm";
 
 const benefits = [
@@ -51,7 +52,7 @@ export default function Home() {
           </p>
           <div className="hero-actions">
             <a className="primary-button" href="#waitlist">Become a founding member</a>
-            <a className="text-link" href="#how-it-works">See how Libbu works →</a>
+            <a className="text-link" href="#concierge">Try the AI concierge →</a>
           </div>
           <div className="hero-proof">
             <div className="avatar-stack" aria-hidden="true">
@@ -134,6 +135,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <LibbuAgent />
 
       <section className="founding-section container">
         <div className="founding-card">
