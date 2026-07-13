@@ -26,6 +26,8 @@ const memberBenefits = [
   "A voice in shaping the platform",
 ];
 
+const audiences = ["Founders", "Side hustlers", "Consultants", "Creators", "Women in tech"];
+
 export default function Home() {
   return (
     <main>
@@ -40,12 +42,12 @@ export default function Home() {
         <div className="hero-copy">
           <p className="eyebrow">The private community for women building what’s next</p>
           <h1>
-            You don’t have to
-            <span> build alone.</span>
+            Build your business with women who
+            <span> understand the journey.</span>
           </h1>
           <p className="hero-text">
-            Libbu connects ambitious women with the right collaborators, accountability,
-            knowledge and opportunities to turn ideas into meaningful progress.
+            Libbu uses intelligent matching to connect ambitious women with collaborators,
+            accountability partners, mentors and opportunities that help them grow.
           </p>
           <div className="hero-actions">
             <a className="primary-button" href="#waitlist">Become a founding member</a>
@@ -59,27 +61,34 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="hero-card" aria-label="Libbu community preview">
+        <div className="hero-card" aria-label="Libbu matching preview">
           <div className="card-orbit orbit-one" />
           <div className="card-orbit orbit-two" />
           <div className="match-card match-main">
-            <p className="mini-label">Your Libbu circle</p>
-            <h2>Women who understand where you’re going.</h2>
+            <p className="mini-label">Your Libbu matches</p>
+            <h2>People who can help you move forward.</h2>
+            <div className="match-row">
+              <span className="profile-mark">F</span>
+              <div><strong>Founder</strong><small>London · Looking for accountability</small></div>
+            </div>
+            <div className="match-row">
+              <span className="profile-mark">M</span>
+              <div><strong>Marketing consultant</strong><small>Manchester · Looking for startup clients</small></div>
+            </div>
             <div className="match-row">
               <span className="profile-mark">A</span>
-              <div><strong>Amara</strong><small>Product founder · London</small></div>
-            </div>
-            <div className="match-row">
-              <span className="profile-mark">S</span>
-              <div><strong>Sophie</strong><small>Brand strategist · Bristol</small></div>
-            </div>
-            <div className="match-row">
-              <span className="profile-mark">N</span>
-              <div><strong>Noor</strong><small>Tech consultant · Manchester</small></div>
+              <div><strong>AI product builder</strong><small>Bristol · Looking for collaborators</small></div>
             </div>
           </div>
-          <div className="floating-note note-one">Accountability that moves you forward</div>
+          <div className="floating-note note-one">Matched by stage, goals and skills</div>
           <div className="floating-note note-two">Real connections. No noisy feed.</div>
+        </div>
+      </section>
+
+      <section className="audience-strip" aria-label="Who Libbu is built for">
+        <div className="container audience-strip-inner">
+          <span>Built for</span>
+          {audiences.map((audience) => <strong key={audience}>✓ {audience}</strong>)}
         </div>
       </section>
 
@@ -87,7 +96,7 @@ export default function Home() {
         <div className="container statement-grid">
           <p className="eyebrow">Why Libbu</p>
           <div>
-            <h2>Building something meaningful can feel lonely.</h2>
+            <h2>LinkedIn helps you collect connections. Libbu helps you build meaningful ones.</h2>
             <p>
               Traditional networking creates contacts. Libbu is designed to create progress:
               relevant introductions, trusted circles and relationships with purpose.
@@ -145,8 +154,8 @@ export default function Home() {
       <section className="waitlist-section" id="waitlist">
         <div className="container waitlist-grid">
           <div className="waitlist-copy">
-            <p className="eyebrow">Join the first circle</p>
-            <h2>Find your people. Build your future.</h2>
+            <p className="eyebrow">Become a founding member</p>
+            <h2>Help shape the future of Libbu.</h2>
             <p>
               Tell us a little about your journey. Your answers will help us shape Libbu
               around the women it is being built for.
